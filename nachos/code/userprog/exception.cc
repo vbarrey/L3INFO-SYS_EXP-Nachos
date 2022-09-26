@@ -88,7 +88,6 @@ ExceptionHandler (ExceptionType which)
                     DEBUG('s', "PutChar\n");
                     char c = machine->ReadRegister (4);
                     consoledriver->PutChar(c);
-                    UpdatePC();
                     break;
                   }
                 #endif

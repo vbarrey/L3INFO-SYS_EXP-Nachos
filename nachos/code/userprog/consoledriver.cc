@@ -39,7 +39,9 @@ int ConsoleDriver::GetChar()
 
 void ConsoleDriver::PutString(const char *s)
 {
-    // ...
+    for(int i=0; i<strlen(s); i++){
+        PutChar(s[i]);
+    }
 }
 
 void ConsoleDriver::GetString(char *s, int n)

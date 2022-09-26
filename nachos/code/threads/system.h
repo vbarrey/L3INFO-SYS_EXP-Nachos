@@ -34,6 +34,13 @@ extern Timer *timer;            // the hardware alarm clock
 extern Machine *machine;        // user program memory and registers
 #endif
 
+#ifdef CHANGED
+#ifdef USER_PROGRAM
+#include "consoledriver.h"
+extern ConsoleDriver *consoledriver;
+#endif
+#endif
+
 #ifdef FILESYS_NEEDED           // FILESYS or FILESYS_STUB
 #include "filesys.h"
 extern FileSystem *fileSystem;
@@ -48,5 +55,6 @@ extern SynchDisk *synchDisk;
 #include "post.h"
 extern PostOffice *postOffice;
 #endif
+
 
 #endif // SYSTEM_H

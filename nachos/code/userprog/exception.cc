@@ -41,6 +41,33 @@ UpdatePC ()
 }
 
 
+#ifdef CHANGED
+//----------------------------------------------------------------------
+// copyStringFromMachine : Copy a string from user space to kernel space.
+// The number of characters copied is returned
+//----------------------------------------------------------------------
+static int
+copyStringFromMachine(int from, char* to, unsigned size)
+{ 
+  int i;
+  for(i=0; i < size; i++){
+    if(i == size -1){
+      to[i] = '\0';
+      return i;
+    }
+    int x;
+    machine->ReadMem(from+i, 1, &x);
+    to[i] = x;
+    if(x == '\0')
+      break;
+  }
+
+  return i+1;
+}
+
+#endif
+
+
 //----------------------------------------------------------------------
 // ExceptionHandler
 //      Entry point into the Nachos kernel.  Called when a user program
@@ -90,6 +117,22 @@ ExceptionHandler (ExceptionType which)
                     consoledriver->PutChar(c);
                     break;
                   }
+                case SC_PutString:
+                  {
+                    DEBUG('s', "PutString\n");
+                    int addr = machine->ReadRegister (4);
+                    char* tampon = (char*)malloc(MAX_STRING_SIZE);
+                    int ret;
+                    do{
+                      ret = copyStringFromMachine(addr, tampon, MAX_STRING_SIZE);
+                      consoledriver->PutString(tampon);
+                      addr = addr + (MAX_STRING_SIZE-1);
+                    }
+                    while(ret == (MAX_STRING_SIZE-1));
+                    free(tampon);
+                    break;
+                  }
+                
                 #endif
                 default:
                   {

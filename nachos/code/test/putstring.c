@@ -3,6 +3,6 @@
 int main()
 {
     PutString("Hello world !\n");
-    Halt();
+    //Halt();
 }
 #endif

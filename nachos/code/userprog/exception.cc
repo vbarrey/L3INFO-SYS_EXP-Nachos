@@ -132,6 +132,11 @@ ExceptionHandler (ExceptionType which)
                     free(tampon);
                     break;
                   }
+                case SC_Exit:
+                {
+                  interrupt->Powerdown ();
+                  break;
+                }
                 
                 #endif
                 default:

@@ -65,6 +65,27 @@ copyStringFromMachine(int from, char* to, unsigned size)
   return i+1;
 }
 
+static int copyStringToMachine(char* from, int to, unsigned size)
+{
+  DEBUG ('s', "Write mem failed.\n");
+  int i;
+  for(i=0; i< size; i++){
+    DEBUG ('s', "Write mem failed2.\n");
+    int v;
+    
+    if(i == size -1){
+      v = '\0';
+      machine->WriteMem(to+i, 1, v);
+      return i;
+    }
+
+    machine->ReadMem(*(from)+i, 1, &v);
+    machine->WriteMem(to+i, 1, v);
+    if(v == '\0')
+      break;
+  }  
+}
+
 #endif
 
 
@@ -137,8 +158,30 @@ ExceptionHandler (ExceptionType which)
                   interrupt->Powerdown ();
                   break;
                 }
-                
-                #endif
+                case SC_GetChar:
+                {
+                  DEBUG('s', "GetChar\n");
+                  char c = consoledriver->GetChar();
+                  machine->WriteRegister(2, c);
+                  break;
+                }
+                case SC_GetString:
+                {
+                  DEBUG('s', "GetString\n");
+                  char *from = (char*)malloc(MAX_STRING_SIZE);
+                  int *to = (int*)malloc(MAX_STRING_SIZE);
+                  int ptr = *(to);
+                  int ret;
+                  do{
+                    consoledriver->GetString(from, MAX_STRING_SIZE);
+                    ret = copyStringToMachine(from, ptr, MAX_STRING_SIZE);
+                    ptr += MAX_STRING_SIZE-1;               
+                  }while(ret == (MAX_STRING_SIZE-1));
+                  machine->WriteRegister(2,*(to));
+                  free(from);
+                  break;
+                }
+                #endif //CHANGED
                 default:
                   {
                     ASSERT_MSG(FALSE, "Unimplemented system call %d\n", type);

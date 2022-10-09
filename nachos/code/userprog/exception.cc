@@ -68,9 +68,7 @@ copyStringFromMachine(int from, char* to, unsigned size)
 static int copyStringToMachine(char* from, int to, unsigned size)
 {
   DEBUG ('s', "Write mem failed.\n");
-  int i;
-  for(i=0; i< size; i++){
-    DEBUG ('s', "Write mem failed2.\n");
+  for(int i=0; i< size; i++){
     int v;
     
     if(i == size -1){
@@ -79,14 +77,15 @@ static int copyStringToMachine(char* from, int to, unsigned size)
       return i;
     }
 
-    machine->ReadMem(*(from)+i, 1, &v);
+    v << int(from[i]);
     machine->WriteMem(to+i, 1, v);
+    DEBUG ('s', "Write mem failed2.\n");
     if(v == '\0')
       break;
   }  
 }
 
-#endif
+#endif // CHANGED
 
 
 //----------------------------------------------------------------------

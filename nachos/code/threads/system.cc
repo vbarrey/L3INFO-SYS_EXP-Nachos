@@ -35,6 +35,12 @@ SynchDisk *synchDisk;
 Machine *machine;		// user program memory and registers
 #endif
 
+#ifdef CHANGED
+#ifdef USER_PROGRAM
+ConsoleDriver *consoledriver;
+#endif
+#endif
+
 #ifdef NETWORK
 PostOffice *postOffice;
 #endif
@@ -230,6 +236,12 @@ Cleanup ()
         delete machine;
         machine = NULL;
     }
+    #ifdef CHANGED
+    if(consoledriver){
+        delete consoledriver;
+        consoledriver = NULL;
+    }
+    #endif // CHANGED
 #endif
 
 #ifdef FILESYS_NEEDED

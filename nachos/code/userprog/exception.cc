@@ -41,6 +41,53 @@ UpdatePC ()
 }
 
 
+#ifdef CHANGED
+//----------------------------------------------------------------------
+// copyStringFromMachine : Copy a string from user space to kernel space.
+// The number of characters copied is returned
+//----------------------------------------------------------------------
+static int
+copyStringFromMachine(int from, char* to, unsigned size)
+{ 
+  int i;
+  for(i=0; i < size; i++){
+    if(i == size -1){
+      to[i] = '\0';
+      return i;
+    }
+    int x;
+    machine->ReadMem(from+i, 1, &x);
+    to[i] = x;
+    if(x == '\0')
+      break;
+  }
+
+  return i+1;
+}
+
+static int copyStringToMachine(char* from, int to, unsigned size)
+{
+  DEBUG ('s', "Write mem failed.\n");
+  for(int i=0; i< size; i++){
+    int v;
+    
+    if(i == size -1){
+      v = '\0';
+      machine->WriteMem(to+i, 1, v);
+      return i;
+    }
+
+    v << int(from[i]);
+    machine->WriteMem(to+i, 1, v);
+    DEBUG ('s', "Write mem failed2.\n");
+    if(v == '\0')
+      break;
+  }  
+}
+
+#endif // CHANGED
+
+
 //----------------------------------------------------------------------
 // ExceptionHandler
 //      Entry point into the Nachos kernel.  Called when a user program
@@ -82,6 +129,58 @@ ExceptionHandler (ExceptionType which)
                     interrupt->Powerdown ();
                     break;
                   }
+                #ifdef CHANGED
+                case SC_PutChar:
+                  {
+                    DEBUG('s', "PutChar\n");
+                    char c = machine->ReadRegister (4);
+                    consoledriver->PutChar(c);
+                    break;
+                  }
+                case SC_PutString:
+                  {
+                    DEBUG('s', "PutString\n");
+                    int addr = machine->ReadRegister (4);
+                    char* tampon = (char*)malloc(MAX_STRING_SIZE);
+                    int ret;
+                    do{
+                      ret = copyStringFromMachine(addr, tampon, MAX_STRING_SIZE);
+                      consoledriver->PutString(tampon);
+                      addr = addr + (MAX_STRING_SIZE-1);
+                    }
+                    while(ret == (MAX_STRING_SIZE-1));
+                    free(tampon);
+                    break;
+                  }
+                case SC_Exit:
+                {
+                  interrupt->Powerdown ();
+                  break;
+                }
+                case SC_GetChar:
+                {
+                  DEBUG('s', "GetChar\n");
+                  char c = consoledriver->GetChar();
+                  machine->WriteRegister(2, c);
+                  break;
+                }
+                case SC_GetString:
+                {
+                  DEBUG('s', "GetString\n");
+                  char *from = (char*)malloc(MAX_STRING_SIZE);
+                  int *to = (int*)malloc(MAX_STRING_SIZE);
+                  int ptr = *(to);
+                  int ret;
+                  do{
+                    consoledriver->GetString(from, MAX_STRING_SIZE);
+                    ret = copyStringToMachine(from, ptr, MAX_STRING_SIZE);
+                    ptr += MAX_STRING_SIZE-1;               
+                  }while(ret == (MAX_STRING_SIZE-1));
+                  machine->WriteRegister(2,*(to));
+                  free(from);
+                  break;
+                }
+                #endif //CHANGED
                 default:
                   {
                     ASSERT_MSG(FALSE, "Unimplemented system call %d\n", type);

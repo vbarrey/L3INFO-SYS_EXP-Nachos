@@ -13,6 +13,9 @@
 #include "console.h"
 #include "addrspace.h"
 #include "synch.h"
+#ifdef CHANGED
+#include "consoledriver.h"
+#endif // CHANGED
 
 //----------------------------------------------------------------------
 // StartProcess
@@ -89,18 +92,47 @@ ConsoleTest (const char *in, const char *out)
     writeDone = new Semaphore ("write done", 0);
     console = new Console (in, out, ReadAvailHandler, WriteDoneHandler, NULL);
 
+    #ifdef CHANGED
     for (;;)
       {
           readAvail->P ();        // wait for character to arrive
           ch = console->RX ();
-          console->TX (ch);        // echo it!
-          writeDone->P ();        // wait for write to finish
-          if (ch == 'q') {
-              printf ("Nothing more, bye!\n");
+
+          if (ch == 'q' || ch == EOF) {
+              printf ("Au revoir\n");
               break;                // if q, quit
+          } 
+          if(ch == '\n'){
+            console->TX (ch);        // echo it!
+            writeDone->P ();          // wait for write to finish  
+          }else{
+            console->TX ('<');
+            writeDone->P ();
+            console->TX (ch);        // echo it!
+            writeDone->P ();          // wait for write to finish
+            console->TX ('>');
+            writeDone->P ();
           }
       }
+    #endif // CHANGED  
     delete console;
     delete readAvail;
     delete writeDone;
 }
+
+#ifdef CHANGED
+void
+ConsoleDriverTest (const char *in, const char *out)
+{
+    char ch;
+    ConsoleDriver *test_consoledriver = new ConsoleDriver(in, out);
+    while ((ch = test_consoledriver->GetChar()) != EOF){
+        test_consoledriver->PutChar('<');
+        test_consoledriver->PutChar(ch);
+        test_consoledriver->PutChar('>');
+    }
+        
+    fprintf(stderr, "EOF detected in ConsoleDriver!\n");
+    delete test_consoledriver;
+}
+#endif //CHANGED

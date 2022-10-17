@@ -12,10 +12,23 @@ static void StartUserThread (void* schmurtz){
     int* schmurtzInt = (int*)schmurtz;
     int f = schmurtzInt[0];
     int args = schmurtzInt[1];
+    free(schmurtz);
+
+    int i;
+
+    for (i = 0; i < NumTotalRegs; i++)
+        machine->WriteRegister (i, 0);
+
+    machine->WriteRegister (PCReg, f);
+    machine->WriteRegister (4, args);
+
+    machine->WriteRegister (NextPCReg, machine->ReadRegister(PCReg) + 4);
+
+    machine->WriteRegister (StackReg, currentThread->space->AllocateUserStack());
+    
+    machine->Run();
 
     
-
-    free(schmurtz);
 }
 
 
@@ -34,6 +47,15 @@ int do_ThreadCreate(int f, int arg){
     newThread->Start(StartUserThread, args);
 
     return 0;
+}
+
+
+//----------------------------------------------------------------------
+// do_ThreadExit
+//      Exit a Thread.
+//----------------------------------------------------------------------
+void do_ThreadExit(void){
+    currentThread->Finish();
 }
 
 

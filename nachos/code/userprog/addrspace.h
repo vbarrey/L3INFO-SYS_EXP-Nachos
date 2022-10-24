@@ -21,6 +21,12 @@
 
 #define UserStacksAreaSize		1024	// increase this as necessary!
 
+#ifdef CHANGED
+  #define ThreadSize             256  // decrese if you get bored
+#endif
+
+class Semaphore;
+
 class AddrSpace:public dontcopythis
 {
   public:
@@ -43,6 +49,8 @@ class AddrSpace:public dontcopythis
 
     #ifdef CHANGED
     unsigned AllocateUserStack(void);
+    unsigned GetNumThreads(void);
+    void DecreaseNumThreads(void);
     #endif //CHANGED
 
   private:
@@ -50,6 +58,9 @@ class AddrSpace:public dontcopythis
 
     TranslationEntry * pageTable; // Page table
     unsigned int numPages;      // Number of pages in the page table
+    #ifdef CHANGED
+    unsigned int numThreads;    // Number of threads currently sharing the adress space
+    #endif
 };
 
 extern List AddrspaceList;

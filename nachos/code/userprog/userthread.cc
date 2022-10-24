@@ -4,6 +4,7 @@
 #include "system.h"
 #include "addrspace.h"
 
+
 //----------------------------------------------------------------------
 // StartUserThread
 //      function used to initialize and start a thread in User mode.
@@ -43,7 +44,6 @@ int do_ThreadCreate(int f, int arg){
     args[1] = arg; 
     Thread *newThread = new Thread ("newThread");
     newThread->space = currentThread->space;
-
     newThread->Start(StartUserThread, args);
 
     return 0;
@@ -55,6 +55,11 @@ int do_ThreadCreate(int f, int arg){
 //      Exit a Thread.
 //----------------------------------------------------------------------
 void do_ThreadExit(void){
+    currentThread->space->DecreaseNumThreads();
+    if(currentThread->space->GetNumThreads() == 0){
+        interrupt->Powerdown();
+    }
+    
     currentThread->Finish();
 }
 

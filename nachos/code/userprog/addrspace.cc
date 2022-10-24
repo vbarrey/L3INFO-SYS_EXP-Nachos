@@ -20,6 +20,8 @@
 #include "addrspace.h"
 #include "noff.h"
 #include "syscall.h"
+#include "synch.h"
+#include "bitmap.h"
 #include "new"
 
 //----------------------------------------------------------------------
@@ -51,6 +53,21 @@ SwapHeader (NoffHeader * noffH)
 //----------------------------------------------------------------------
 List AddrSpaceList;
 
+#ifdef CHANGED
+//----------------------------------------------------------------------
+// accessNumThreads
+//      Semaphore used to access (read and update) the number of threads
+//----------------------------------------------------------------------
+static Semaphore *accessNumThreads;
+
+//----------------------------------------------------------------------
+// threadTable
+//      table of boolean value whever a slot is currently used by a thread or not 
+//----------------------------------------------------------------------
+static BitMap *threadTable;
+
+#endif // CHANGED
+
 //----------------------------------------------------------------------
 // AddrSpace::AddrSpace
 //      Create an address space to run a user program.
@@ -70,6 +87,12 @@ AddrSpace::AddrSpace (OpenFile * executable)
 {
     unsigned int i, size;
 
+    #ifdef CHANGED
+    threadTable = new BitMap(UserStacksAreaSize / ThreadSize);
+    threadTable->Mark(0);
+    accessNumThreads = new Semaphore("access NumThreads token", 1);
+    #endif //CHANGED
+
     executable->ReadAt (&noffH, sizeof (noffH), 0);
     if ((noffH.noffMagic != NOFFMAGIC) &&
         (WordToHost (noffH.noffMagic) == NOFFMAGIC))
@@ -82,6 +105,11 @@ AddrSpace::AddrSpace (OpenFile * executable)
     // to leave room for the stack
     numPages = divRoundUp (size, PageSize);
     size = numPages * PageSize;
+
+    #ifdef CHANGED
+    //Init the number of threads sharing the current addrSpace
+    numThreads = 1;
+    #endif //CHANGED
 
     // check we're not trying
     // to run anything too big --
@@ -297,6 +325,32 @@ AddrSpace::RestoreState ()
 unsigned
 AddrSpace::AllocateUserStack() 
 {
-    return numPages * PageSize-256-16;
+    int i;
+    accessNumThreads->P();
+    i = threadTable->Find();
+    numThreads += 1;
+    accessNumThreads->V();
+    return (numPages * PageSize) - (i * ThreadSize) - 16;
 } 
+
+unsigned
+AddrSpace::GetNumThreads()
+{   
+    int i;
+    accessNumThreads->P();
+    i = numThreads;
+    accessNumThreads->V();
+    return i;
+}
+
+void
+AddrSpace::DecreaseNumThreads()
+{
+    int i = (-1 * machine->ReadRegister(StackReg) + (numPages * PageSize) - 16) / ThreadSize;
+    DEBUG ('s', "ThreadTable number : %d", i);
+    accessNumThreads->P();
+    numThreads -= 1;
+    threadTable->Clear(i);
+    accessNumThreads->V();
+}
 #endif //CHANGED

@@ -24,7 +24,6 @@ static void StartUserThread (void* schmurtz){
     machine->WriteRegister (4, args);
 
     machine->WriteRegister (NextPCReg, machine->ReadRegister(PCReg) + 4);
-
     machine->WriteRegister (StackReg, currentThread->space->AllocateUserStack());
     
     machine->Run();
@@ -39,6 +38,7 @@ static void StartUserThread (void* schmurtz){
 //      Create a new Thread.
 //----------------------------------------------------------------------
 int do_ThreadCreate(int f, int arg){
+    currentThread->space->IncrementNumThreads ();
     int *args = (int*)malloc(2*sizeof(int));
     args[0] = f;
     args[1] = arg; 

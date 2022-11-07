@@ -22,7 +22,7 @@
 #define UserStacksAreaSize		1024	// increase this as necessary!
 
 #ifdef CHANGED
-  #define ThreadSize             256  // decrese if you get bored
+  #define ThreadSize             256  
 #endif
 
 class Semaphore;
@@ -51,6 +51,7 @@ class AddrSpace:public dontcopythis
     unsigned AllocateUserStack(void);
     unsigned GetNumThreads(void);
     void DecreaseNumThreads(void);
+    void IncrementNumThreads(void);
     #endif //CHANGED
 
   private:

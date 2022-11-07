@@ -14,7 +14,6 @@ void test(void* c)
 
 void testParam(void* v)
 {
-    //TO IMPROVE mettre testParam dans le main
     char c = (char)v;
     PutChar(c);
     ThreadExit();
@@ -24,11 +23,11 @@ void testParam(void* v)
 int main()
 {
     int i;
-    for(i=0; i<5; i++){
-        ThreadCreate(testParam, (void*)('a'));
-    }
-
     PutString("kakolo\n");
+    for(i=0; i<30; i++){
+        ThreadCreate(test, (void*)('a'));
+    }
+    
     ThreadExit();
     return 0;
 }

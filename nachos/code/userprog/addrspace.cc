@@ -59,6 +59,8 @@ List AddrSpaceList;
 //      Semaphore used to access (read and update) the number of threads
 //----------------------------------------------------------------------
 static Semaphore *accessNumThreads;
+static Semaphore *accessThreadTable;
+static Semaphore *threadSlotAvailable;
 
 //----------------------------------------------------------------------
 // threadTable
@@ -91,6 +93,9 @@ AddrSpace::AddrSpace (OpenFile * executable)
     threadTable = new BitMap(UserStacksAreaSize / ThreadSize);
     threadTable->Mark(0);
     accessNumThreads = new Semaphore("access NumThreads token", 1);
+    accessThreadTable = new Semaphore("access threadTable token", 1);
+    DEBUG ('s', "Number of jetons : %d\n", UserStacksAreaSize / ThreadSize);
+    threadSlotAvailable = new Semaphore("thread slots tokens", (UserStacksAreaSize / ThreadSize) - 1);
     #endif //CHANGED
 
     executable->ReadAt (&noffH, sizeof (noffH), 0);
@@ -325,13 +330,22 @@ AddrSpace::RestoreState ()
 unsigned
 AddrSpace::AllocateUserStack() 
 {
+    threadSlotAvailable->P();
     int i;
-    accessNumThreads->P();
+    accessThreadTable->P();
     i = threadTable->Find();
-    numThreads += 1;
-    accessNumThreads->V();
+    accessThreadTable->V();
     return (numPages * PageSize) - (i * ThreadSize) - 16;
 } 
+
+
+void
+AddrSpace::IncrementNumThreads(void)
+{
+    accessNumThreads->P();
+    numThreads += 1;
+    accessNumThreads->V();
+}
 
 unsigned
 AddrSpace::GetNumThreads()
@@ -347,10 +361,14 @@ void
 AddrSpace::DecreaseNumThreads()
 {
     int i = (-1 * machine->ReadRegister(StackReg) + (numPages * PageSize) - 16) / ThreadSize;
-    DEBUG ('s', "ThreadTable number : %d", i);
     accessNumThreads->P();
     numThreads -= 1;
-    threadTable->Clear(i);
+    DEBUG ('s', "BitTableNumber of thread terminated : %d\n", i);
     accessNumThreads->V();
+    accessThreadTable -> P();
+    threadTable->Clear(i);
+    accessThreadTable -> V();
+    threadSlotAvailable->V();
+
 }
 #endif //CHANGED

@@ -25,6 +25,7 @@
 #include "system.h"
 #include "syscall.h"
 #include "userthread.h"
+#include "userproc.h"
 
 //----------------------------------------------------------------------
 // UpdatePC : Increments the Program Counter register in order to resume
@@ -50,7 +51,7 @@ UpdatePC ()
 static int
 copyStringFromMachine(int from, char* to, unsigned size)
 { 
-  int i;
+  uint i;
   for(i=0; i < size; i++){
     if(i == size -1){
       to[i] = '\0';
@@ -69,7 +70,7 @@ copyStringFromMachine(int from, char* to, unsigned size)
 static int copyStringToMachine(char* from, int to, unsigned size)
 {
   DEBUG ('s', "Write mem failed.\n");
-  for(int i=0; i< size; i++){
+  for(uint i=0; i< size; i++){
     int v;
     
     if(i == size -1){
@@ -194,6 +195,15 @@ ExceptionHandler (ExceptionType which)
                 {
                   DEBUG('s', "ThreadExit\n");
                   do_ThreadExit();
+                  break;
+                }
+                case SC_ForkExec:
+                {
+                  DEBUG('s', "ForkExec\n");
+                  int fAddr = machine->ReadRegister (4);
+                  char* tampon = (char*)malloc(MAX_STRING_SIZE);
+                  copyStringFromMachine(fAddr, tampon, MAX_STRING_SIZE);
+                  do_ForkExec(tampon);
                   break;
                 }
                 #endif //CHANGED

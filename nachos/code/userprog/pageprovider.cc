@@ -2,12 +2,14 @@
 
 #include "new"
 #include "pageprovider.h"
+#include <time.h>
+#include <stdlib.h>
 
 
-PageProvider::PageProvider(int numPage)
+PageProvider::PageProvider(int n)
 {
-
-    physPageMap = new BitMap(numPage);
+    numPages = n;
+    physPageMap = new BitMap(n);
 
 }
 
@@ -21,6 +23,20 @@ PageProvider::GetEmptyPage()
 {
     return physPageMap->Find();
 }
+
+int
+PageProvider::GetRandomEmptyPage()
+{
+    int r;
+    srand(time(NULL));   // Initialization, should only be called once.
+    do{
+        r = rand()%numPages;
+    } while(physPageMap->Test(r));
+    DEBUG('a', "CHOSE PHYS PAGE 0x%x\n", r);
+    physPageMap->Mark(r);
+    return  r;
+}
+
 
 void
 PageProvider::ReleasePage(int page)

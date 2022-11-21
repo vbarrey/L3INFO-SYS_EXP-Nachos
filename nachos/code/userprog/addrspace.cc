@@ -149,14 +149,16 @@ AddrSpace::AddrSpace (OpenFile * executable)
     // virtual memory
     if (numPages > NumPhysPages)
             throw std::bad_alloc();
-
+    
     DEBUG ('a', "Initializing address space, num pages %d, total size 0x%x\n",
            numPages, size);
 // first, set up the translation
     pageTable = new TranslationEntry[numPages];
     for (i = 0; i < numPages; i++)
       {
-          pageTable[i].physicalPage = i+1;        // for now, phys page # = virtual page +1#
+          int physPage = pageProvider->GetEmptyPage();
+          ASSERT(physPage != -1);
+          pageTable[i].physicalPage = physPage;    // for now, phys page # = virtual page +1#
           pageTable[i].valid = TRUE;
           pageTable[i].use = FALSE;
           pageTable[i].dirty = FALSE;
@@ -202,10 +204,15 @@ AddrSpace::AddrSpace (OpenFile * executable)
 
 AddrSpace::~AddrSpace ()
 {
-  delete [] pageTable;
-  pageTable = NULL;
+    for (uint i = 0; i < numPages; i++)
+    {
+        DEBUG('a', "Clear page : 0x%x\n", pageTable[i].physicalPage);
+        pageProvider->ReleasePage(pageTable[i].physicalPage);
+    }
+    delete [] pageTable;
+    pageTable = NULL;
 
-  AddrSpaceList.Remove(this);
+    AddrSpaceList.Remove(this);
 }
 
 //----------------------------------------------------------------------

@@ -2,6 +2,7 @@
 
 #include "copyright.h"
 #include "system.h"
+#include "userthread.h"
 #include "addrspace.h"
 
 

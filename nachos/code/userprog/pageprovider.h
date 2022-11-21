@@ -13,11 +13,14 @@
     public:
         int GetEmptyPage(void);
 
+        int GetRandomEmptyPage(void);
+
         void ReleasePage(int page);
 
         int NumAvailablePage(void);
 
     private:
-        BitMap physPageMap;
+        BitMap *physPageMap;
+        int numPages;
 };
 #endif

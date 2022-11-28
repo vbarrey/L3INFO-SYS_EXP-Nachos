@@ -24,10 +24,8 @@ int main()
 {
     int i;
     PutString("kakolo\n");
-    for(i=0; i<30; i++){
+    for(i=0; i<12; i++){
         ThreadCreate(test, (void*)('a'));
     }
-    
-    ThreadExit();
     return 0;
 }

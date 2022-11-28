@@ -9,9 +9,12 @@
 
 int main()
 {
-    PutString("Hello from main\n");
-    ForkExec("../test/putstringForFork");
-    ForkExec("../test/putstringForFork");
-    while(1);
+    int i,r;
+    for (i = 0; i<12; i++){
+        r = ForkExec("../test/makeThreads");
+        if(r == -1){
+            PutString("NUUUL\n");
+        }
+    }
     return 0;
 }

@@ -11,7 +11,6 @@
 int main()
 {
     PutString("Hello from second processus\n");
-    while(1);
     return 0;
 }
 

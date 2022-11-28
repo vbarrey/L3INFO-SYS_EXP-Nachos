@@ -58,7 +58,14 @@ int do_ThreadCreate(int f, int arg){
 void do_ThreadExit(void){
     currentThread->space->DecreaseNumThreads();
     if(currentThread->space->GetNumThreads() == 0){
-        interrupt->Powerdown();
+        accessNumProc->P();
+        numProc--;
+        accessNumProc->V();
+        if(numProc == 0){
+            interrupt->Powerdown();
+        } else {
+            delete currentThread->space;
+        }
     }
     
     currentThread->Finish();

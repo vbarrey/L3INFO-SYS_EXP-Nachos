@@ -19,8 +19,6 @@ static void StartUserProg(void* schmurtz){
     
 }
 
-
-
 //----------------------------------------------------------------------
 // do_ForkExec
 //      Create a new Process.
@@ -28,11 +26,22 @@ static void StartUserProg(void* schmurtz){
 int do_ForkExec(char* f){
     //TO CHANGE
     OpenFile *file = fileSystem->Open (f);
-    AddrSpace *addrSpace = new AddrSpace(file);
+    AddrSpace *addrSpace;
+    try{
+        addrSpace = new AddrSpace(file);
+    }catch(std::bad_alloc & e){
+        DEBUG ('s', "Number of null\n");
+        delete file;
+        return -1;
+    }
+    delete file;
     Thread *newPrincipal = new Thread("newPrincipal");
     newPrincipal->space = addrSpace;
+    accessNumProc->P();
+    numProc++;
+    accessNumProc->V();
+    
     newPrincipal->Start(StartUserProg, NULL);
-
     return 0;
 }
 

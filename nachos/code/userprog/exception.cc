@@ -156,7 +156,8 @@ ExceptionHandler (ExceptionType which)
                   }
                 case SC_Exit:
                 {
-                  interrupt->Powerdown ();
+                  DEBUG('s', "EndProc -> ThreadExit\n");
+                  do_ThreadExit();
                   break;
                 }
                 case SC_GetChar:
@@ -201,9 +202,11 @@ ExceptionHandler (ExceptionType which)
                 {
                   DEBUG('s', "ForkExec\n");
                   int fAddr = machine->ReadRegister (4);
-                  char* tampon = (char*)malloc(MAX_STRING_SIZE);
-                  copyStringFromMachine(fAddr, tampon, MAX_STRING_SIZE);
-                  do_ForkExec(tampon);
+                  char* tampon = (char*)malloc(256);
+                  copyStringFromMachine(fAddr, tampon, 256);
+                  int res = do_ForkExec(tampon);
+                  machine->WriteRegister(2, res);
+                  free(tampon);
                   break;
                 }
                 #endif //CHANGED

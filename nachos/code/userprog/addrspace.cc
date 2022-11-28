@@ -85,15 +85,15 @@ List AddrSpaceList;
 // accessNumThreads
 //      Semaphore used to access (read and update) the number of threads
 //----------------------------------------------------------------------
-static Semaphore *accessNumThreads;
-static Semaphore *accessThreadTable;
-static Semaphore *threadSlotAvailable;
+Semaphore *accessNumThreads;
+Semaphore *accessThreadTable;
+Semaphore *threadSlotAvailable;
 
 //----------------------------------------------------------------------
 // threadTable
 //      table of boolean value whever a slot is currently used by a thread or not 
 //----------------------------------------------------------------------
-static BitMap *threadTable;
+BitMap *threadTable;
 
 #endif // CHANGED
 
@@ -121,7 +121,6 @@ AddrSpace::AddrSpace (OpenFile * executable)
     threadTable->Mark(0);
     accessNumThreads = new Semaphore("access NumThreads token", 1);
     accessThreadTable = new Semaphore("access threadTable token", 1);
-    DEBUG ('s', "Number of jetons : %d\n", UserStacksAreaSize / ThreadSize);
     threadSlotAvailable = new Semaphore("thread slots tokens", (UserStacksAreaSize / ThreadSize) - 1);
     #endif //CHANGED
 
@@ -147,9 +146,9 @@ AddrSpace::AddrSpace (OpenFile * executable)
     // to run anything too big --
     // at least until we have
     // virtual memory
-    if (numPages > NumPhysPages)
+    if (numPages > pageProvider->NumAvailablePage())
             throw std::bad_alloc();
-    
+
     DEBUG ('a', "Initializing address space, num pages %d, total size 0x%x\n",
            numPages, size);
 // first, set up the translation
@@ -212,6 +211,15 @@ AddrSpace::~AddrSpace ()
     delete [] pageTable;
     pageTable = NULL;
 
+    delete accessNumThreads;
+    delete accessThreadTable;
+    delete threadSlotAvailable;
+    delete threadTable;
+
+    accessNumThreads = NULL;
+    accessThreadTable = NULL;
+    threadSlotAvailable = NULL;
+    threadTable = NULL;
     AddrSpaceList.Remove(this);
 }
 
@@ -402,7 +410,6 @@ AddrSpace::DecreaseNumThreads()
     int i = (-1 * machine->ReadRegister(StackReg) + (numPages * PageSize) - 16) / ThreadSize;
     accessNumThreads->P();
     numThreads -= 1;
-    DEBUG ('s', "BitTableNumber of thread terminated : %d\n", i);
     accessNumThreads->V();
     accessThreadTable -> P();
     threadTable->Clear(i);

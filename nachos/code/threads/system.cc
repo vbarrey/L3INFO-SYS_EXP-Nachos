@@ -33,7 +33,12 @@ SynchDisk *synchDisk;
 
 #ifdef USER_PROGRAM		// requires either FILESYS or FILESYS_STUB
 Machine *machine;		// user program memory and registers
+
+#ifdef CHANGED
 PageProvider *pageProvider;
+Semaphore *accessNumProc;
+int numProc;
+#endif
 #endif
 
 #ifdef CHANGED
@@ -187,6 +192,8 @@ Initialize (int argc, char **argv)
 #ifdef USER_PROGRAM
     machine = new Machine (debugUserProg);	// this must come first
     pageProvider = new PageProvider(NumPhysPages);
+    accessNumProc = new Semaphore("access NumProc token", 1);
+    numProc=1;
 #endif
 
 #ifdef FILESYS
@@ -238,14 +245,18 @@ Cleanup ()
         delete machine;
         machine = NULL;
     }
-    if (pageProvider) {
-        delete pageProvider;
-        pageProvider = NULL;
-    }
     #ifdef CHANGED
     if(consoledriver){
         delete consoledriver;
         consoledriver = NULL;
+    }
+    if (accessNumProc) {
+        delete accessNumProc;
+        accessNumProc = NULL;
+    }
+    if (pageProvider) {
+        delete pageProvider;
+        pageProvider = NULL;
     }
     #endif // CHANGED
 #endif

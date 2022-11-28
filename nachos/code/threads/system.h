@@ -31,9 +31,16 @@ extern Timer *timer;            // the hardware alarm clock
 
 #ifdef USER_PROGRAM
 #include "machine.h"
+#ifdef CHANGED
+#include "synch.h"
 #include "pageprovider.h"
+#endif
 extern Machine *machine;        // user program memory and registers
+#ifdef CHANGED
 extern PageProvider *pageProvider;
+extern Semaphore *accessNumProc;
+extern int numProc;
+#endif
 #endif
 
 #ifdef CHANGED

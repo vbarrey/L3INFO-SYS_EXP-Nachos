@@ -2,6 +2,7 @@
 
 #include "filesys.h"
 #include "bitmap.h"
+#include "synch.h"
 
     class PageProvider:public dontcopythis
 {
@@ -21,6 +22,7 @@
 
     private:
         BitMap *physPageMap;
+        Semaphore *accessPageMap;
         int numPages;
 };
 #endif

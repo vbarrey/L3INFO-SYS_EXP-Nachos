@@ -18,6 +18,7 @@
 #include "translate.h"
 #include "noff.h"
 #include "list.h"
+#include "bitmap.h"
 
 #define UserStacksAreaSize		1024	// increase this as necessary!
 
@@ -61,9 +62,12 @@ class AddrSpace:public dontcopythis
     unsigned int numPages;      // Number of pages in the page table
     #ifdef CHANGED
     unsigned int numThreads;    // Number of threads currently sharing the adress space
+    Semaphore *accessNumThreads;
+    Semaphore *accessThreadTable;
+    Semaphore *threadSlotAvailable;
+    BitMap *threadTable;
     #endif
 };
-
 extern List AddrspaceList;
 
 #endif // ADDRSPACE_H

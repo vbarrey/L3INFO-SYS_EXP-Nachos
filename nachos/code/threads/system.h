@@ -39,6 +39,7 @@ extern Machine *machine;        // user program memory and registers
 #ifdef CHANGED
 extern PageProvider *pageProvider;
 extern Semaphore *accessNumProc;
+extern Semaphore *accessPhysPageAllocation;
 extern int numProc;
 #endif
 #endif

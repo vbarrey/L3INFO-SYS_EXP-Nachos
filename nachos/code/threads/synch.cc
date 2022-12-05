@@ -81,6 +81,26 @@ Semaphore::P ()
     (void) interrupt->SetLevel (oldLevel);	// re-enable interrupts
 }
 
+#ifdef CHANGED
+void
+Semaphore::PWithValue (int n)
+{
+    IntStatus oldLevel = interrupt->SetLevel (IntOff);	// disable interrupts
+
+    ASSERT_MSG(value >= 0, "Semaphore became negative!?\n");
+
+    while (value < n)
+      {				// semaphore not available
+          queue->Append ((void *) currentThread);        // so go to sleep
+          currentThread->Sleep ();
+      }
+    value -= n;			// semaphore available,
+    // consume its value
+
+    (void) interrupt->SetLevel (oldLevel);	// re-enable interrupts
+}
+#endif //CHANGED
+
 //----------------------------------------------------------------------
 // Semaphore::V
 //      Increment semaphore value, waking up a waiter if necessary.

@@ -37,6 +37,7 @@ Machine *machine;		// user program memory and registers
 #ifdef CHANGED
 PageProvider *pageProvider;
 Semaphore *accessNumProc;
+Semaphore *accessPhysPageAllocation;
 int numProc;
 #endif
 #endif
@@ -192,6 +193,7 @@ Initialize (int argc, char **argv)
 #ifdef USER_PROGRAM
     machine = new Machine (debugUserProg);	// this must come first
     pageProvider = new PageProvider(NumPhysPages);
+    accessPhysPageAllocation = new Semaphore("Acces to the phys page allocation", NumPhysPages);
     accessNumProc = new Semaphore("access NumProc token", 1);
     numProc=1;
 #endif

@@ -1,3 +1,6 @@
+#ifndef PAGEPROVIDER_H
+#define PAGEPROVIDER_H
+
 #ifdef CHANGED
 
 #include "filesys.h"
@@ -18,11 +21,12 @@
 
         void ReleasePage(int page);
 
-        int NumAvailablePage(void);
+        uint NumAvailablePage(void);
 
     private:
         BitMap *physPageMap;
         Semaphore *accessPageMap;
         int numPages;
 };
+#endif
 #endif

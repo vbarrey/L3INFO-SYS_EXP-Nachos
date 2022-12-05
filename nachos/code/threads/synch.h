@@ -47,6 +47,9 @@ class Semaphore:public dontcopythis
     }                           // debugging assist
 
     void P (void);              // these are the only operations on a semaphore
+    #ifdef CHANGED
+    void PWithValue (int n);
+    #endif //CHANGED
     void V (void);              // they are both *atomic*
 
   private:

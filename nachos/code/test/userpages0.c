@@ -10,10 +10,10 @@
 int main()
 {
     int i,r;
-    for (i = 0; i<12; i++){
+    for (i = 0; i<50; i++){
         r = ForkExec("../test/makeThreads");
         if(r == -1){
-            PutString("NUUUL\n");
+            PutString("Impossible de lancer de nouveau processus!\n");
         }
     }
     return 0;

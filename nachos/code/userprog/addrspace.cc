@@ -116,13 +116,6 @@ AddrSpace::AddrSpace (OpenFile * executable)
 {
     unsigned int i, size;
 
-    #ifdef CHANGED
-    threadTable = new BitMap(UserStacksAreaSize / ThreadSize);
-    threadTable->Mark(0);
-    accessNumThreads = new Semaphore("access NumThreads token", 1);
-    accessThreadTable = new Semaphore("access threadTable token", 1);
-    threadSlotAvailable = new Semaphore("thread slots tokens", (UserStacksAreaSize / ThreadSize) - 1);
-    #endif //CHANGED
 
     executable->ReadAt (&noffH, sizeof (noffH), 0);
     if ((noffH.noffMagic != NOFFMAGIC) &&
@@ -137,6 +130,7 @@ AddrSpace::AddrSpace (OpenFile * executable)
     numPages = divRoundUp (size, PageSize);
     size = numPages * PageSize;
 
+
     #ifdef CHANGED
     //Init the number of threads sharing the current addrSpace
     numThreads = 1;
@@ -146,8 +140,24 @@ AddrSpace::AddrSpace (OpenFile * executable)
     // to run anything too big --
     // at least until we have
     // virtual memory
+    // UNUSED BECAUSE OF THE accessPhysPageAllocation SEMAPHORE
+    /*
     if (numPages > pageProvider->NumAvailablePage())
-            throw std::bad_alloc();
+    {
+        throw std::bad_alloc();
+    }
+    */
+
+    accessPhysPageAllocation-> PWithValue(numPages);
+
+    #ifdef CHANGED
+    threadTable = new BitMap(UserStacksAreaSize / ThreadSize);
+    threadTable->Mark(0);
+    accessNumThreads = new Semaphore("access NumThreads token", 1);
+    accessThreadTable = new Semaphore("access threadTable token", 1);
+    threadSlotAvailable = new Semaphore("thread slots tokens", (UserStacksAreaSize / ThreadSize) - 1);
+    #endif //CHANGED
+
 
     DEBUG ('a', "Initializing address space, num pages %d, total size 0x%x\n",
            numPages, size);
@@ -155,7 +165,7 @@ AddrSpace::AddrSpace (OpenFile * executable)
     pageTable = new TranslationEntry[numPages];
     for (i = 0; i < numPages; i++)
       {
-          int physPage = pageProvider->GetEmptyPage();
+          int physPage = pageProvider->GetRandomEmptyPage();
           ASSERT(physPage != -1);
           pageTable[i].physicalPage = physPage;    // for now, phys page # = virtual page +1#
           pageTable[i].valid = TRUE;
@@ -192,8 +202,8 @@ AddrSpace::AddrSpace (OpenFile * executable)
            size - UserStacksAreaSize, UserStacksAreaSize);
 
     pageTable[0].valid = FALSE;			// Catch NULL dereference
-
     AddrSpaceList.Append(this);
+    machine->DumpMem("addrspace3.svg");
 }
 
 //----------------------------------------------------------------------
@@ -207,6 +217,7 @@ AddrSpace::~AddrSpace ()
     {
         DEBUG('a', "Clear page : 0x%x\n", pageTable[i].physicalPage);
         pageProvider->ReleasePage(pageTable[i].physicalPage);
+        accessPhysPageAllocation-> V();
     }
     delete [] pageTable;
     pageTable = NULL;

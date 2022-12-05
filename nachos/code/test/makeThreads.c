@@ -8,7 +8,7 @@
 
 void test(void* c)
 {
-    PutChar('A');
+    PutString("makeThread test.\n");
     ThreadExit();
 }
 
@@ -23,7 +23,6 @@ void testParam(void* v)
 int main()
 {
     int i;
-    PutString("kakolo\n");
     for(i=0; i<12; i++){
         ThreadCreate(test, (void*)('a'));
     }
